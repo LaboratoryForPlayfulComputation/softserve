@@ -1,4 +1,4 @@
-defmodule Softserve.SocketRouter do
+defmodule Web.SocketRouter do
     use Plug.Router
     
     plug :match

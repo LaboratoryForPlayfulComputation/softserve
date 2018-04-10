@@ -8,6 +8,7 @@ defmodule Softserve.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
+      {Plug.Adapters.Cowboy, scheme: :http, plug: Web.Router, options: [port: 8000]},
       Plug.Adapters.Cowboy.child_spec(:http, Web.SocketRouter, [], [
         dispatch: dispatch
       ])
@@ -33,6 +34,5 @@ end
 
 
 '''
-
 {Plug.Adapters.Cowboy, scheme: :http, plug: Web.Router, options: [port: 8080]},
 '''

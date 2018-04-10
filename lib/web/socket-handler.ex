@@ -15,6 +15,7 @@ defmodule Web.SocketHandler do
 
   # Handle 'ping' messages from the browser - reply
   def websocket_handle({:text, "ping"}, req, state) do
+    IO.puts('pong!')
     {:reply, {:text, "pong"}, req, state}
   end
   
