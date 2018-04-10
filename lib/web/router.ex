@@ -1,18 +1,17 @@
 defmodule Web.Router do
     use Plug.Router
     
-    plug Plug.Logger,
-        log: :debug
+    plug Plug.Logger
     plug :match
     plug Plug.Static,
       at: "/",
-      from: :softserve
+      from: {:softserve, "priv/message/"}
     plug :dispatch
   
     get "/" do
         conn
         |> put_resp_header("content-type", "text/html; charset=utf-8")
-        |> send_file(200, "lib/web/makecode/index.html")
+        |> send_file(200, "priv/message/index.html")
     end
     
     match _ do
