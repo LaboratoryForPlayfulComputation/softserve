@@ -34,5 +34,5 @@ end
 
 
 '''
-{Plug.Adapters.Cowboy, scheme: :http, plug: Web.Router, options: [port: 8080]},
+i{Plug.Adapters.Cowboy, scheme: :http, plug: Web.Router, options: [port: 8080]},
 '''
