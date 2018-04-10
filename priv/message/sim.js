@@ -21,6 +21,15 @@ var pxsim;
         function hop(hop, color) {
         }
         hare.hop = hop;
+        //% blockId=sampleConnect block="connect"
+        //% optionalVariableArgs
+        function connect() {
+            var connection = new WebSocket("ws://localhost:4000/socket/websocket/");
+            connection.onopen = function () {
+                connection.send('hop');
+            };
+        }
+        hare.connect = connect;
         //% blockId=sampleOnLand block="on land"
         //% optionalVariableArgs
         function onLand(handler) {
