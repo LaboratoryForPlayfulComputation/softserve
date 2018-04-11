@@ -1,5 +1,5 @@
-# Stub for a python program that should interactively build and import
-# a static instance of Makecode into the elixir app
+# Invoke this script on the command line with 'python3 importMakecode.py' to 
+# build a makecode instance and copy into the elixir project
 import os
 import argparse
 import subprocess
@@ -10,7 +10,7 @@ parser.add_argument('--src',
                     dest='src', 
                     action='store',
                     help='Makecode directory (NOT the built directory)',
-                    default='../pxt-sample/')
+                    default='../pxt-pi/')
                     
 
 parser.add_argument('--dest', 
@@ -45,9 +45,9 @@ if ((confirm == 'y') or (confirm == 'Y')):
                     print('****** Makecode static build successfully copied from ' + os.path.abspath(copySrc) +  ' to ' + os.path.abspath(copyDst) + ' ******')
             
             elif (os.path.exists(copySrc) == False):
-                print('problem with the source while copying')
+                print('problem with the source path while copying')
             elif (os.path.exists(copyDst) == False):
-                print('problem with the destination while copying')
+                print('problem with the destination path while copying')
             else:
                 print('unknown error while copying')
     else:
