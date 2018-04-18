@@ -21,7 +21,7 @@ defmodule Web.SocketHandler do
   # Handle other messages from the browser - don't reply
   def websocket_handle({:text, message}, req, state) do
     IO.puts(message)
-    {:ok, req, state}
+    {:reply, {:text, message}, req, state}
   end
 
   # Format and forward elixir messages to client
