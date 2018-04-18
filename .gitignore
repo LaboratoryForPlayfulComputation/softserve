@@ -24,3 +24,6 @@ softserve-*.tar
 
 # vscode
 .vscode
+
+#ignore elixir utilities
+.elixir_ls
