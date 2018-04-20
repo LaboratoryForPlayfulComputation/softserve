@@ -23,7 +23,11 @@ erl_crash.dump
 softserve-*.tar
 
 # vscode
+<<<<<<< HEAD
 .vscode
 
 #ignore elixir utilities
 .elixir_ls
+=======
+.vscode
+>>>>>>> master
