@@ -68,6 +68,8 @@ defmodule Blockytalky.GrovePiState do
 	end
 	def init(_) do
 		Logger.info("Initializing #{inspect __MODULE__}")
+		#LED manual set for testing
+		set_component_value(:D2, :LED)
 		{:ok, %{}}
 	end
 	def set_component_type(port_id, component_id) do

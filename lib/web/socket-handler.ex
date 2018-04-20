@@ -1,5 +1,6 @@
 defmodule Web.SocketHandler do 
   @behaviour :cowboy_websocket_handler
+  require JSON
 
   def init(_, _req, _opts) do
     {:upgrade, :protocol, :cowboy_websocket}
@@ -18,9 +19,25 @@ defmodule Web.SocketHandler do
     {:reply, {:text, "pong"}, req, state}
   end
   
-  # Handle other messages from the browser - don't reply
+
+  # Handle other messages from the browser 
   def websocket_handle({:text, message}, req, state) do
-    IO.puts(message)
+    #led catch experimentation
+    {:ok, list} = JSON.decode(message)
+    IO.puts(inspect list)
+
+    case list["type"] do
+      "LedOn" -> 
+        IO.puts("Led on!")
+        Blockytalky.GrovePi.set_component_value(:D2, 1)
+      "Ledoff" -> 
+        IO.puts("Led off!")
+        Blockytalky.GrovePi.set_component_value(:D2, 0)
+      _ -> 
+        IO.puts("It's not an LED message so I don't care")
+    end
+
+
     {:reply, {:text, message}, req, state}
   end
 

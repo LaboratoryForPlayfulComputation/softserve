@@ -25,6 +25,7 @@ defmodule Softserve.MixProject do
       {:cowboy, "~>1.0.3"},
       {:plug, "~> 1.0"},
       {:websockex, "~> 0.4.0"},
+      {:json, "~> 1.2"},
       {:erlport, git: "https://github.com/hdima/erlport.git"}
 
 
