@@ -21,7 +21,7 @@ defmodule Blockytalky.PythonQuerier do
   #External API - should only be called by HardwareDaemon
   def start_link(python_module) do
     
-    {:ok, python_env} = :python.start([{:python_path,String.to_char_list("/Users/aeos42/Projects/softserve/lib/hw_apis")}])
+    {:ok, python_env} = :python.start([{:python_path,String.to_char_list("/home/pi/Projects/softserve/lib/hw_apis")}])
     Logger.debug "PythonQuerier: Started with module: #{inspect python_module}"
     status = {:ok, _pid} = GenServer.start_link(__MODULE__, {python_env, python_module}, name: python_module)
     #run setup on init.

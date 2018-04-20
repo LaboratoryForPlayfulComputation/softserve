@@ -15,7 +15,7 @@ defmodule Blockytalky.RuntimeUtils do
     system = System.get_env("HW")
     case system do
       nil ->
-        Application.get_env(:blockytalky, :supported_hardware) || [:mock]
+        Application.get_env(:blockytalky, :supported_hardware) || [:btgrovepi]
       v -> v |> String.split() |> Enum.map(&String.to_atom/1)
     end
   end
