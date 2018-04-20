@@ -11,9 +11,12 @@ defmodule Softserve.Application do
       {Plug.Adapters.Cowboy, scheme: :http, plug: Web.Router, options: [port: 8000]},
       Plug.Adapters.Cowboy.child_spec(:http, Web.SocketRouter, [], [
         dispatch: dispatch
-      ])
-      
-    ]    
+      ]),
+      %{
+        id: Blockytalky.HardwareDaemon,
+        start: {Blockytalky.HardwareDaemon, :start_link, []}
+      }
+    ]
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Softserve.Supervisor]
@@ -34,5 +37,6 @@ end
 
 
 '''
+
 i{Plug.Adapters.Cowboy, scheme: :http, plug: Web.Router, options: [port: 8080]},
 '''
