@@ -15,21 +15,13 @@ defmodule Web.SocketHandler do
 
   # Handle 'ping' messages from the browser - reply
   def websocket_handle({:text, "ping"}, req, state) do
-<<<<<<< HEAD
-    IO.puts('pong!')
-=======
->>>>>>> master
     {:reply, {:text, "pong"}, req, state}
   end
   
   # Handle other messages from the browser - don't reply
   def websocket_handle({:text, message}, req, state) do
     IO.puts(message)
-<<<<<<< HEAD
-    {:ok, req, state}
-=======
     {:reply, {:text, message}, req, state}
->>>>>>> master
   end
 
   # Format and forward elixir messages to client
@@ -41,8 +33,4 @@ defmodule Web.SocketHandler do
   def websocket_terminate(_reason, _req, _state) do
     :ok
   end
-<<<<<<< HEAD
 end
-=======
-end
->>>>>>> master

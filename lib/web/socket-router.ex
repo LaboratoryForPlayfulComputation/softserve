@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 defmodule Web.SocketRouter do
-=======
-defmodule Softserve.SocketRouter do
->>>>>>> master
     use Plug.Router
     
     plug :match

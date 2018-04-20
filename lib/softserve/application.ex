@@ -8,7 +8,6 @@ defmodule Softserve.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-<<<<<<< HEAD
       {Plug.Adapters.Cowboy, scheme: :http, plug: Web.Router, options: [port: 8000]},
       Plug.Adapters.Cowboy.child_spec(:http, Web.SocketRouter, [], [
         dispatch: dispatch
@@ -18,13 +17,6 @@ defmodule Softserve.Application do
         start: {Blockytalky.HardwareDaemon, :start_link, []}
       }
     ]
-=======
-      Plug.Adapters.Cowboy.child_spec(:http, Web.SocketRouter, [], [
-        dispatch: dispatch
-      ])
-      
-    ]    
->>>>>>> master
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Softserve.Supervisor]
@@ -46,10 +38,5 @@ end
 
 '''
 
-<<<<<<< HEAD
 i{Plug.Adapters.Cowboy, scheme: :http, plug: Web.Router, options: [port: 8080]},
 '''
-=======
-{Plug.Adapters.Cowboy, scheme: :http, plug: Web.Router, options: [port: 8080]},
-'''
->>>>>>> master
