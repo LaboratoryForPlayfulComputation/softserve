@@ -15,12 +15,6 @@ defmodule Web.SocketHandler do
     {:ok, req, state, @timeout}
   end
 
-  # Handle 'ping' messages from the browser - reply
-  def websocket_handle({:text, "ping"}, req, state) do
-    {:reply, {:text, "pong"}, req, state}
-  end
-  
-
   # Handle other messages from the browser 
   def websocket_handle({:text, message}, req, state) do
     #led catch experimentation
@@ -29,13 +23,15 @@ defmodule Web.SocketHandler do
     case list["type"] do
       "led" -> 
         IO.puts("websocket led msg recieved")
-        GPMessage.led(message)
+        GPMessage.led(list)
       _ -> 
         IO.puts("Uncaught message type")
     end
-
-
     {:reply, {:text, message}, req, state}
+  end
+
+  def websocket_handle({:text, "ping"}, req, state) do
+    {:reply, {:text, "pong"}, req, state}
   end
 
   # Format and forward elixir messages to client
