@@ -1,7 +1,7 @@
 defmodule Web.SocketHandler do 
   @behaviour :cowboy_websocket_handler
   require JSON
-  alias Web.GrovePiMessage, as: GPMessage
+
 
   def init(_, _req, _opts) do
     {:upgrade, :protocol, :cowboy_websocket}
@@ -19,13 +19,18 @@ defmodule Web.SocketHandler do
   def websocket_handle({:text, message}, req, state) do
     #led catch experimentation
     {:ok, list} = JSON.decode(message)
-    
+
     case list["type"] do
-      "led" -> 
-        IO.puts("websocket led msg recieved")
-        GPMessage.led(list)
-      _ -> 
-        IO.puts("Uncaught message type")
+      "setComponentType" -> 
+        IO.puts("setComponentType recieved")
+        Web.GrovePiMessage.set_component_type_message(list)
+      "setComponentValue" -> 
+        IO.puts("setComponentValue recieved")
+        Web.GrovePiMessage.set_component_value_message(list)
+      "getComponentValue" ->
+        IO.puts("getComponentValue recieved")
+        Web.GrovePiMessage.get_component_value_message(list)
+      _ -> IO.puts("uncaught message type") 
     end
     {:reply, {:text, message}, req, state}
   end
