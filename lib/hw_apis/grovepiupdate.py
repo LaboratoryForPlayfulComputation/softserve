@@ -7,29 +7,66 @@
 #
 # The GrovePi connects the Raspberry Pi and Grove sensors.  You can learn more about GrovePi here:  http://www.dexterindustries.com/GrovePi
 #
-# Have a question about this example?  Ask on the forums here:  http://www.dexterindustries.com/forum/?forum=grovepi
+# Have a question about this example?  Ask on the forums here:  http://forum.dexterindustries.com/c/grovepi
 #
-# LICENSE: 
-# These files have been made available online through a [Creative Commons Attribution-ShareAlike 3.0](http://creativecommons.org/licenses/by-sa/3.0/) license.
-#
-# Karan Nayan
-# Initial Date: 13 Feb 2014
-# Last Updated: 01 June 2015
-# http://www.dexterindustries.com/
+'''
+## License
 
-import smbus
+The MIT License (MIT)
+
+GrovePi for the Raspberry Pi: an open source platform for connecting Grove Sensors to the Raspberry Pi.
+Copyright (C) 2017  Dexter Industries
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+'''
+# Initial Date: 13 Feb 2014
+# Last Updated: 11 Nov 2016
+# http://www.dexterindustries.com/
+# Author	Date      		Comments
+# Karan		13 Feb 2014  	Initial Authoring
+# 			11 Nov 2016		I2C retries added for faster IO
+#							DHT function updated to look for nan's
+
+import sys
 import time
 import math
-import RPi.GPIO as GPIO
 import struct
+import numpy
 
-debug =0
+debug = 0
 
-rev = GPIO.RPI_REVISION
-if rev == 2 or rev == 3:
+if sys.version_info<(3,0):
+	p_version=2
+else:
+	p_version=3
+
+if sys.platform == 'uwp':
+	import winrt_smbus as smbus
 	bus = smbus.SMBus(1)
 else:
-	bus = smbus.SMBus(0)
+	import smbus
+	import RPi.GPIO as GPIO
+	rev = GPIO.RPI_REVISION
+	if rev == 2 or rev == 3:
+		bus = smbus.SMBus(1)
+	else:
+		bus = smbus.SMBus(0)
 
 # I2C Address of Arduino
 address = 0x04
@@ -113,45 +150,57 @@ ir_read_cmd=[21]
 # Set pin for the IR reciever
 ir_recv_pin_cmd=[22]
 
+dus_sensor_read_cmd=[10]
+dust_sensor_en_cmd=[14]
+dust_sensor_dis_cmd=[15]
+encoder_read_cmd=[11]
+encoder_en_cmd=[16]
+encoder_dis_cmd=[17]
+flow_read_cmd=[12]
+flow_disable_cmd=[13]
+flow_en_cmd=[18]
 # This allows us to be more specific about which commands contain unused bytes
 unused = 0
-
+retries = 10
 # Function declarations of the various functions used for encoding and sending
 # data from RPi to Arduino
 
 
 # Write I2C block
 def write_i2c_block(address, block):
-	try:
-		return bus.write_i2c_block_data(address, 1, block)
-	except IOError:
-		if debug:
-			print "IOError"
-		return -1
+	for i in range(retries):
+		try:
+			return bus.write_i2c_block_data(address, 1, block)
+		except IOError:
+			if debug:
+				print ("IOError")
+	return -1
 
 # Read I2C byte
 def read_i2c_byte(address):
-	try:
-		return bus.read_byte(address)
-	except IOError:
-		if debug:
-			print "IOError"
-		return -1
+	for i in range(retries):
+		try:
+			return bus.read_byte(address)
+		except IOError:
+			if debug:
+				print ("IOError")
+	return -1
 
 
 # Read I2C block
 def read_i2c_block(address):
-	try:
-		return bus.read_i2c_block_data(address, 1)
-	except IOError:
-		if debug:
-			print "IOError"
-		return -1
+	for i in range(retries):
+		try:
+			return bus.read_i2c_block_data(address, 1)
+		except IOError:
+			if debug:
+				print ("IOError")
+	return -1
 
 # Arduino Digital Read
 def digitalRead(pin):
 	write_i2c_block(address, dRead_cmd + [pin, unused, unused])
-	time.sleep(.1)
+	# time.sleep(.1)
 	n = read_i2c_byte(address)
 	return n
 
@@ -172,11 +221,9 @@ def pinMode(pin, mode):
 
 # Read analog value from Pin
 def analogRead(pin):
-        print("main driver, analog read!")
-	bus.write_i2c_block_data(address, 1, aRead_cmd + [pin, unused, unused])
-	time.sleep(.1)
-	bus.read_byte(address)
-	number = bus.read_i2c_block_data(address, 1)
+	write_i2c_block(address, aRead_cmd + [pin, unused, unused])
+	read_i2c_byte(address)
+	number = read_i2c_block(address)
 	return number[1] * 256 + number[2]
 
 
@@ -204,7 +251,7 @@ def temp(pin, model = '1.0'):
 # Read value from Grove Ultrasonic
 def ultrasonicRead(pin):
 	write_i2c_block(address, uRead_cmd + [pin, unused, unused])
-	time.sleep(.2)
+	time.sleep(.06)	#firmware has a time of 50ms so wait for more than that
 	read_i2c_byte(address)
 	number = read_i2c_block(address)
 	return (number[1] * 256 + number[2])
@@ -248,53 +295,60 @@ def dht(pin, module_type):
 	write_i2c_block(address, dht_temp_cmd + [pin, module_type, unused])
 
 	# Delay necessary for proper reading fron DHT sensor
-	time.sleep(.6)
+	# time.sleep(.6)
 	try:
 		read_i2c_byte(address)
 		number = read_i2c_block(address)
+		# time.sleep(.1)
 		if number == -1:
 			return [-1,-1]
 	except (TypeError, IndexError):
 		return [-1,-1]
 	# data returned in IEEE format as a float in 4 bytes
-	f = 0
-	# data is reversed
-	for element in reversed(number[1:5]):
-		# Converted to hex
-		hex_val = hex(element)
-		#print hex_val
-		try:
-			h_val = hex_val[2] + hex_val[3]
-		except IndexError:
-			h_val = '0' + hex_val[2]
-		# Convert to char array
-		if f == 0:
-			h = h_val
-			f = 1
-		else:
-			h = h + h_val
-	# convert the temp back to float
-	t = round(struct.unpack('!f', h.decode('hex'))[0], 2)
 
-	h = ''
-	# data is reversed
-	for element in reversed(number[5:9]):
-		# Converted to hex
-		hex_val = hex(element)
-		# Print hex_val
-		try:
-			h_val = hex_val[2] + hex_val[3]
-		except IndexError:
-			h_val = '0' + hex_val[2]
-		# Convert to char array
-		if f == 0:
-			h = h_val
-			f = 1
-		else:
-			h = h + h_val
-	# convert back to float
-	hum = round(struct.unpack('!f', h.decode('hex'))[0], 2)
-	return [t, hum]
+	if p_version==2:
+		h=''
+		for element in (number[1:5]):
+			h+=chr(element)
+
+		t_val=struct.unpack('f', h)
+		t = round(t_val[0], 2)
+
+		h = ''
+		for element in (number[5:9]):
+			h+=chr(element)
+
+		hum_val=struct.unpack('f',h)
+		hum = round(hum_val[0], 2)
+	else:
+		t_val=bytearray(number[1:5])
+		h_val=bytearray(number[5:9])
+		t=round(struct.unpack('f',t_val)[0],2)
+		hum=round(struct.unpack('f',h_val)[0],2)
+	if t > -100.0 and t <150.0 and hum >= 0.0 and hum<=100.0:
+		return [t, hum]
+	else:
+		return [float('nan'),float('nan')]
+
+# after a list of numerical values is provided
+# the function returns a list with the outlier(or extreme) values removed
+# make the std_factor_threshold bigger so that filtering becomes less strict
+# and make the std_factor_threshold smaller to get the opposite
+def statisticalNoiseReduction(values, std_factor_threshold = 2):
+	if len(values) == 0:
+		return []
+		
+	mean = numpy.mean(values)
+	standard_deviation = numpy.std(values)
+
+	if standard_deviation == 0:
+		return values
+
+	filtered_values = [element for element in values if element > mean - std_factor_threshold * standard_deviation]
+	filtered_values = [element for element in filtered_values if element < mean + std_factor_threshold * standard_deviation]
+
+	return filtered_values
+
 
 # Grove LED Bar - initialise
 # orientation: (0 = red to green, 1 = green to red)
@@ -472,12 +526,72 @@ def ir_read_signal():
 		write_i2c_block(address,ir_read_cmd+[unused,unused,unused])
 		time.sleep(.1)
 		data_back= bus.read_i2c_block_data(address, 1)[0:21]
-		if data_back[1]<>255:
+		if (data_back[1]!=255):
 			return data_back
 		return [-1]*21
 	except IOError:
 		return [-1]*21
-		
+
 # Grove - Infrared Receiver- set the pin on which the Grove IR sensor is connected
 def ir_recv_pin(pin):
 	write_i2c_block(address,ir_recv_pin_cmd+[pin,unused,unused])
+
+def dust_sensor_en():
+	write_i2c_block(address, dust_sensor_en_cmd + [unused, unused, unused])
+	time.sleep(.2)
+
+def dust_sensor_dis():
+	write_i2c_block(address, dust_sensor_dis_cmd + [unused, unused, unused])
+	time.sleep(.2)
+
+def dustSensorRead():
+	write_i2c_block(address, dus_sensor_read_cmd + [unused, unused, unused])
+	time.sleep(.2)
+	#read_i2c_byte(address)
+	#number = read_i2c_block(address)
+	#return (number[1] * 256 + number[2])
+	data_back= bus.read_i2c_block_data(address, 1)[0:4]
+	#print data_back[:4]
+	if data_back[0]!=255:
+		lowpulseoccupancy=(data_back[3]*256*256+data_back[2]*256+data_back[1])
+		#print [data_back[0],lowpulseoccupancy]
+		return [data_back[0],lowpulseoccupancy]
+	else:
+		return [-1,-1]
+	print (data_back)
+
+def encoder_en():
+	write_i2c_block(address, encoder_en_cmd + [unused, unused, unused])
+	time.sleep(.2)
+
+def encoder_dis():
+	write_i2c_block(address, encoder_dis_cmd + [unused, unused, unused])
+	time.sleep(.2)
+
+def encoderRead():
+	write_i2c_block(address, encoder_read_cmd + [unused, unused, unused])
+	time.sleep(.2)
+	data_back= bus.read_i2c_block_data(address, 1)[0:2]
+	#print data_back
+	if data_back[0]!=255:
+		return [data_back[0],data_back[1]]
+	else:
+		return [-1,-1]
+
+def flowDisable():
+	write_i2c_block(address, flow_disable_cmd + [unused, unused, unused])
+	time.sleep(.2)
+
+def flowEnable():
+	write_i2c_block(address, flow_en_cmd + [unused, unused, unused])
+	time.sleep(.2)
+
+def flowRead():
+	write_i2c_block(address, flow_read_cmd + [unused, unused, unused])
+	time.sleep(.2)
+	data_back= bus.read_i2c_block_data(address, 1)[0:3]
+	#print data_back
+	if data_back[0]!=255:
+		return [data_back[0],data_back[2]*256+data_back[1]]
+	else:
+		return [-1,-1]

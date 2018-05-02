@@ -1,4 +1,4 @@
-from grovepi import *
+from grovepiupdate import *
 
 
 NO_SENSOR = -1
@@ -7,6 +7,7 @@ def setup(io_vals = []): #array with indices as ports and values as plugged-in-c
     #0  1  2  3  4  5  6  7  8  9  ... 10     11    12    13
     #A0 A1 A2 D3 D4 D5 D6 D7 D8 D2 ... SERIAL I2C-1 I2C-2 I2C-3
    #loop through and check all
+    print("in setup")
     for i in range(len(io_vals)):
 	if io_vals[i] == "INPUT":
 		if i == 9:
@@ -29,6 +30,7 @@ def get_sensor_value(port_num,sensor_type,sensor_io):
 	    elif sensor_io == "DHT":
 		[val,val2] = dht(port_num,0)
 	    elif sensor_type == "analog":
+                print("caught analog")
 		val = analogRead(port_num)
 	    elif sensor_type == "digital":
 		val = digitalRead(port_num)
@@ -43,6 +45,7 @@ def get_sensor_value(port_num,sensor_type,sensor_io):
 	    else:
 		return val
 def set_sensor_type(port_num, sensor_io): #sets the pinmode if applicable
+    print(port_num)
     if (sensor_io != "DHT" and sensor_io != "ULTRASONIC"):
 	pinMode(port_num,sensor_io)
     return
