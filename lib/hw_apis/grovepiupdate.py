@@ -49,7 +49,7 @@ import math
 import struct
 import numpy
 
-debug = 0
+debug = 1
 
 if sys.version_info<(3,0):
 	p_version=2
@@ -221,7 +221,8 @@ def pinMode(pin, mode):
 
 # Read analog value from Pin
 def analogRead(pin):
-	write_i2c_block(address, aRead_cmd + [pin, unused, unused])
+        print("main driver, analogRead")
+        write_i2c_block(address, aRead_cmd + [pin, unused, unused])
 	read_i2c_byte(address)
 	number = read_i2c_block(address)
 	return number[1] * 256 + number[2]
